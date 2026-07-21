@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu - Fiszki</title>
+    <title>Menu & Wina - Fiszki</title>
     <style>
         body {
             background-color: #333333;
@@ -70,25 +70,31 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 40px;
+            margin-top: 30px;
             width: 100%;
             max-width: 800px;
             padding: 0 20px;
             box-sizing: border-box;
         }
-        .mode-selectors {
+        .category-selectors, .mode-selectors {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
-        .mode-btn {
+        .cat-btn, .mode-btn {
             background-color: #555555;
             color: #aaaaaa;
             border: none;
-            padding: 8px 16px;
+            padding: 8px 18px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .cat-btn.active {
+            background-color: #0284c7;
+            color: #ffffff;
         }
         .mode-btn.active {
             background-color: #666666;
@@ -102,6 +108,7 @@
             font-weight: bold;
             margin-bottom: 20px;
             border: 1px solid #444444;
+            text-align: center;
         }
         .quiz-container {
             background-color: #444444;
@@ -176,6 +183,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            margin-bottom: 30px;
         }
         .go-to-box input {
             background-color: #222222;
@@ -199,12 +207,17 @@
 </div>
 
 <div class="main-content">
+    <div class="category-selectors">
+        <button class="cat-btn active" id="cat-food" onclick="changeCategory('food')">Jedzenie</button>
+        <button class="cat-btn" id="cat-wine" onclick="changeCategory('wine')">Wina</button>
+    </div>
+
     <div class="mode-selectors">
         <button class="mode-btn active" id="btn-learn" onclick="changeMode('learn')">Tryb nauki</button>
         <button class="mode-btn" id="btn-quiz" onclick="changeMode('quiz')">Tryb quizu</button>
     </div>
 
-    <div class="title-banner">Menu - Fiszki</div>
+    <div class="title-banner" id="title-banner">Jedzenie - Fiszki</div>
 
     <div class="quiz-container">
         <div class="question-text" id="display-question">Ładowanie...</div>
@@ -219,12 +232,12 @@
     <div class="counter-box" id="display-counter">Pytanie 1 z 1</div>
     
     <div class="go-to-box">
-        Idź do pytania: <input type="number" id="input-index" onchange="goToItem(this.value)">
+        Idź do pozycji: <input type="number" id="input-index" onchange="goToItem(this.value)">
     </div>
 </div>
 
 <script>
-const menu = [
+const foodMenu = [
     {n: "Grillowany ser górski z żurawiną i boczkiem", i: "Wędzony ser z mleka krowiego (smak zbliżony do oscypka). Plastry sera owijane boczkiem, przesmażane. Dodatek: żurawina marynowana.", a: "Mleko i produkty pochodne"},
     {n: "Śledź z cebulką i śmietaną", i: "Śledź po krakowsku, marynowany min. 12h w zalewie z octu, cukru, ziela angielskiego, liścia laurowego i warzyw. Zaprawa z cebuli, jabłka i jogurtu naturalnego. Układany na płacie ryby. Dodatki: jabłko, cebula czerwona, jajko.", a: "Jaja, Ryby, Mleko i produkty pochodne, Seler"},
     {n: "Polski węgorz wędzony", i: "Węgorz wędzony podawany na ciepło na grzance maślanej z ogórkiem, kwaśną śmietaną i kawiorem z łososia.", a: "Gluten, Ryby, Mleko i produkty pochodne"},
@@ -267,15 +280,167 @@ const menu = [
     {n: "Jaja po benedyktyńsku", i: "Bułka, rukola, szynka, szparagi zielone, jaja poche (w koszulce), sos holenderski.", a: "Gluten, Jaja, Mleko i produkty pochodne"}
 ];
 
+const wineMenu = [
+    {
+        n: "Pradoliny Solaris",
+        i: "Rodzaj: Wino białe | Szczep: Solaris | Kraj: Polska (Podkarpacie)\nProfil: świeże i lekkie, wyraźna mineralność, aromaty białych owoców, przyjemna kwasowość, bardzo rześkie.\nPolecane do: ryb, owoców morza, serów, sałatek, lekkich dań warzywnych.",
+        a: "Ciekawostka: Solaris to szczep stworzony specjalnie do chłodniejszego klimatu. Dzięki temu świetnie odnajduje się w polskich winnicach i jest jednym z najlepszych białych szczepów w Polsce."
+    },
+    {
+        n: "Pradoliny Regent",
+        i: "Rodzaj: Wino czerwone | Szczep: Regent | Kraj: Polska (Podkarpacie)\nProfil: wytrawne, średnio zbudowane, soczyste i owocowe, delikatne taniny, dobrze zbalansowana kwasowość.\nPolecane do: grillowanych mięs, burgerów, makaronów z sosem pomidorowym, serów dojrzewających.",
+        a: "Ciekawostka: Regent to szczep stworzony w Niemczech z myślą o chłodniejszym klimacie. Odporny na choroby winorośli, tworzy eleganckie czerwone wina o owocowym charakterze."
+    },
+    {
+        n: "Pradoliny Zweigelt",
+        i: "Rodzaj: Wino różowe | Szczep: Solaris / Zweigelt | Kraj: Polska (Podkarpacie)\nProfil: wytrawne, soczyste i owocowe, średnio zbudowane, delikatne taniny, przyjemnie świeże.\nPolecane do: grillowanej wołowiny, wieprzowiny, pieczonego drobiu, makaronów z mięsnymi sosami, dojrzewających serów.",
+        a: "Ciekawostka: Seria 'Pradoliny' nawiązuje do pradolin Podkarpacia - terenów ukształtowanych przez lodowce i rzeki tysiące lat temu."
+    },
+    {
+        n: "Czajkowski N°2",
+        i: "Rodzaj: Wino białe musujące (Brut) | Szczep: Fleurtai | Kraj: Polska (Podkarpacie)\nProfil: eleganckie i świeże, delikatne, długo utrzymujące się bąbelki, dobrze zbalansowana kwasowość, rześkie i bardzo uniwersalne.\nPolecane do: owoców morza, delikatnych ryb, dań warzywnych, deski serów, lekkich deserów, jako aperitif.",
+        a: "Ciekawostka: Produkowane metodą tradycyjną (szampańską). Druga fermentacja odbywa się w butelce, dzięki czemu bąbelki są drobniejsze, trwalsze i bardziej eleganckie."
+    },
+    {
+        n: "Czajkowski THÓMA 6 Perfekto",
+        i: "Rodzaj: Wino białe | Szczep: Sauvignon Blanc | Kraj: Polska (Podkarpacie)\nProfil: bardzo świeże, aromatyczne, rześkie, wyraźnie mineralne, doskonale zbalansowana kwasowość.\nPolecane do: owoców morza, ryb, sałatek, drobiu, świeżych i miękkich serów.",
+        a: "Ciekawostka: Winnice Czajkowski położone są na południowym stoku nad rzeką Wisłok w Krośnie. Nasłonecznione zbocza, żyzne mady rzeczne i ręczny zbiór pozwalają tworzyć wina wyjątkowej jakości."
+    },
+    {
+        n: "Czajkowski THÓMA 24",
+        i: "Rodzaj: Wino czerwone | Szczep: Merlot & Cabernet Franc | Kraj: Polska (Podkarpacie)\nProfil: aksamitne i eleganckie, średnio zbudowane, soczyste, dobrze zbalansowana kwasowość, delikatne, przyjemne taniny.\nPolecane do: kaczki i gęsi, wołowiny, dań z grilla, potraw z grzybami, makaronów z mięsem, serów dojrzewających, wędlin.",
+        a: "Ciekawostka: Kupaż dwóch szlachetnych szczepów z Bordeaux. Merlot wnosi miękkość i soczystość, a Cabernet Franc elegancję i delikatne ziołowo-przyprawowe akcenty."
+    },
+    {
+        n: "Prosecco Brut DOC",
+        i: "Rodzaj: Wino białe musujące | Szczep: Glera (Prosecco) | Kraj: Włochy (Veneto)\nProfil: świeże i lekkie, delikatne bąbelki, owocowe, mineralne, bardzo dobrze zbalansowane, przyjemnie orzeźwiające.\nPolecane do: jako aperitif, serów, lekkich makaronów, owoców morza, ryb, drobiu.",
+        a: "Ciekawostka: Oznaczenie DOC (Denominazione di Origine Controllata) gwarantuje produkcję zgodnie z rygorystycznymi włoskimi normami w wyznaczonym regionie Veneto."
+    },
+    {
+        n: "Landhaus Mayer Rose",
+        i: "Rodzaj: Wino różowe | Szczep: Zweigelt i Pinot Noir | Kraj: Austria\nProfil: lekkie i bardzo świeże, soczyste, dobrze zbalansowane, delikatnie mineralne, przyjemnie orzeźwiające.\nPolecane do: jako aperitif, lekkich sałatek, ryb, owoców morza, drobiu, dań z grilla.",
+        a: "Ciekawostka: Marka należy do renomowanej wiedeńskiej winnicy Mayer am Pfarrplatz, jednej z najstarszych w Austrii. Powstają z winogron z Dolnej Austrii."
+    },
+    {
+        n: "Riesling Classic Qualitätswein",
+        i: "Rodzaj: Wino białe | Szczep: Riesling | Kraj: Niemcy\nProfil: świeże i eleganckie, żywa kwasowość, bardzo dobrze zbalansowane, mineralne, lekkie i niezwykle pijalne.\nPolecane do: ryb, owoców morza, sałatek, drobiu, świeżych serów, kuchni azjatyckiej.",
+        a: "Ciekawostka: Qualitätswein to oficjalna niemiecka kategoria win jakościowych. Oznacza pochodzenie z jednego z 13 uznanych regionów winiarskich Niemiec."
+    },
+    {
+        n: "Costers del Sió La Boscana",
+        i: "Rodzaj: Wino białe | Szczep: Chardonnay, Viognier | Kraj: Hiszpania (Katalonia)\nProfil: rześka kwasowość, lekka do średniej struktura, soczysta owocowość i czysty, świeży finisz.\nPolecane do: ryby i owoce morza, lekkie sałatki, drób, świeże sery, makarony z lekkimi sosami.",
+        a: "Ciekawostka: Region Costers del Segre charakteryzuje się dużymi różnicami temperatur między dniem a nocą, dzięki czemu winogrona zachowują dobrą świeżość."
+    },
+    {
+        n: "Pinot Grigio del Vento IGT",
+        i: "Rodzaj: Wino białe | Szczep: Pinot Grigio | Kraj: Włochy\nProfil: wytrawne, lekkie, z przyjemną kwasowością, subtelną owocowością i czystym, orzeźwiającym finiszem.\nPolecane do: ryb, owoców morza, sałatek, drobiu, świeżych serów, jako aperitif, makarony z jasnymi sosami.",
+        a: "Ciekawostka: Jedna z najbardziej rozpoznawalnych włoskich odmian. Najważniejsze regiony to Veneto, Friuli i Trentino."
+    },
+    {
+        n: "Serai Bianco Veronese IGT",
+        i: "Rodzaj: Wino białe | Szczep: Sauvignon Blanc, Chardonnay | Kraj: Włochy\nProfil: wytrawne, harmonijne, z dobrze zaznaczoną kwasowością, lekką kremowością i średnio długim, świeżym finiszem.\nPolecane do: ryby i owoce morza, lekkie sałatki, drób, świeże sery, makarony z lekkimi sosami.",
+        a: "Ciekawostka: Winnica Le Morette działa nad Jeziorem Garda. IGT (Indicazione Geografica Tipica) to oznaczenie win pochodzących z określonego regionu."
+    },
+    {
+        n: "Chablis AOC",
+        i: "Rodzaj: Wino białe | Szczep: Chardonnay | Kraj: Francja (Burgundia)\nProfil: wysoka kwasowość, lekka do średniej budowa, bardzo świeży charakter, wyraźna mineralność i długi, czysty finisz.\nPolecane do: ryb, owoców morza, sery kozie, drób, sałatki, warzywa.",
+        a: "Ciekawostka: Mineralność wynika z gleb kimmeridzkich (skamieniałości morskie). AOC (Appellation d'Origine Contrôlée) gwarantuje przestrzeganie surowych zasad regionalnych."
+    },
+    {
+        n: "Chardonnay Reserva",
+        i: "Rodzaj: Wino białe | Szczep: Chardonnay | Kraj: Chile\nProfil: średnia do pełnej budowy, kremowa tekstura, łagodna kwasowość, dojrzały owoc i dłuższy, miękki finisz.\nPolecane do: tłuste ryby i owoce morza, lekkie sałatki, drób, dojrzewające sery, makarony w maślanych sosach.",
+        a: "Ciekawostka: Wpływ Oceanu Spokojnego i zimnego prądu Humboldta pozwala uzyskać równowagę między tropikalnym owocem a świeżą kwasowością."
+    },
+    {
+        n: "Elephant Hill",
+        i: "Rodzaj: Wino białe | Szczep: Sauvignon Blanc | Kraj: Nowa Zelandia\nProfil: wyraźna kwasowość, lekka do średniej budowa, intensywna owocowość, mineralność i bardzo świeży, długi finisz.\nPolecane do: ryb, owoców morza, sery kozie, sałatki, drób, aperitif.",
+        a: "Ciekawostka: Winnica Elephant Hill mieści się w Hawke's Bay. Nowozelandzkie Sauvignon Blanc słynie z intensywnych aromatów owoców tropikalnych i ziół."
+    },
+    {
+        n: "Châteauneuf-du-Pape Blanc AOC",
+        i: "Rodzaj: Wino białe | Szczep: Grenache Blanc, Roussanne, Clairette, Bourboulenc, Picpoul Blanc | Kraj: Francja\nProfil: pełniejsze ciało, niska do średniej kwasowość, kremowa tekstura, lekka mineralność i długi, złożony finisz.\nPolecane do: szlachetne ryby, owoce morza w kremowych sosach, drób i cielęcina, sery dojrzewające, dania z grzybami.",
+        a: "Ciekawostka: Nazwa oznacza 'Nowy Zamek Papieża' (siedziba papieska w Awinionie w XIV w.). Słynie z otoczaków (galets roulés), które kumulują ciepło słoneczne."
+    },
+    {
+        n: "Valpolicella DOC",
+        i: "Rodzaj: Wino czerwone | Szczep: Corvina, Rondinella, Corvinone | Kraj: Włochy (Veneto)\nProfil: średnia kwasowość, miękkie taniny, soczysty owoc i przyjemny, harmonijny finisz.\nPolecane do: makarony z pomidorowymi sosami, drób i pieczone mięsa, grillowana wieprzowina, cielęcina, sery.",
+        a: "Ciekawostka: Z tego samego regionu Valpolicella pochodzą słynne wina Amarone oraz Ripasso."
+    },
+    {
+        n: "Malbec Coleccion",
+        i: "Rodzaj: Wino czerwone | Szczep: Malbec | Kraj: Argentyna (Mendoza)\nProfil: średnia do pełnej budowy, dojrzałe taniny, umiarkowana kwasowość, soczysty owoc i długi, gładki finisz.\nPolecane do: steki i wołowina z grilla, jagnięcina, burgery, dojrzewające sery, dania z sosami na bazie czerwonego wina.",
+        a: "Ciekawostka: Choć pochodzi z Francji, stał się narodowym szczepem Argentyny. Winnice leżą wysoko u podnóża Andów."
+    },
+    {
+        n: "Patu Primitivo IGT",
+        i: "Rodzaj: Wino czerwone | Szczep: Primitivo | Kraj: Włochy (Apulia)\nProfil: średnia do pełnej budowy, aksamitne taniny, umiarkowana kwasowość, lekko dżemowy charakter i długi finisz.\nPolecane do: grillowana wołowina i wieprzowina, pieczone mięsa, dziczyzna, makarony z sosami mięsnymi, pikantne dodatki.",
+        a: "Ciekawostka: Primitivo jest spokrewnione genetycznie z amerykańskim szczepem Zinfandel (to praktycznie ta sama odmiana)."
+    },
+    {
+        n: "Chianti Riserva DOCG",
+        i: "Rodzaj: Wino czerwone | Szczep: Sangiovese | Kraj: Włochy (Toskania)\nProfil: średnia do pełnej budowy, wyraźna kwasowość, dojrzałe taniny, złożony charakter i długi finisz.\nPolecane do: steki, pieczona wołowina, makarony z ragù, dziczyzna, jagnięcina, dojrzewające sery, risotto z grzybami.",
+        a: "Ciekawostka: DOCG to najwyższa klasyfikacja we Włoszech. Określenie 'Riserva' wymaga minimum 24 miesięcy dojrzewania."
+    },
+    {
+        n: "Valpolicella Ripasso DOC",
+        i: "Rodzaj: Wino czerwone | Szczep: Corvina, Rondinella, Corvinone | Kraj: Włochy (Veneto)\nProfil: średnia do pełnej budowy, miękkie taniny, doskonała równowaga owoców i przypraw, aksamitny finisz.\nPolecane do: pieczona wołowina, cielęcina, jagnięcina, makarony z ragù, sery dojrzewające, risotto z grzybami.",
+        a: "Ciekawostka: 'Ripasso' oznacza ponowne przepuszczenie – młode wino fermentuje drugi raz na wytłokach po produkcji Amarone."
+    },
+    {
+        n: "Costers del Sió Silvestre",
+        i: "Rodzaj: Wino czerwone | Szczep: Tempranillo, Grenache | Kraj: Hiszpania (Katalonia)\nProfil: soczyste, dobrze zbalansowane, z miękkimi taninami, świeżą kwasowością i długim finiszem.\nPolecane do: grillowane i pieczone mięsa, jagnięcina, wieprzowina, makarony z sosami mięsnymi, sery dojrzewające.",
+        a: "Ciekawostka: 'Silvestre' oznacza po hiszpańsku 'dziki' i nawiązuje do dzikiej natury otaczającej winnicę w Costers del Segre."
+    },
+    {
+        n: "Châteauneuf-du-Pape La Loup AOC",
+        i: "Rodzaj: Wino czerwone | Szczep: Grenache, Syrah, Mourvedre | Kraj: Francja\nProfil: pełna budowa, aksamitne taniny, dobrze zintegrowana kwasowość, bogata struktura i przyprawowy finisz.\nPolecane do: steki, pieczona wołowina, jagnięcina, dziczyzna, kaczka, sery dojrzewające.",
+        a: "Ciekawostka: Apelacja Châteauneuf-du-Pape pozwala na użycie aż 13 tradycyjnych odmian winogron do tworzenia czerwonego wina."
+    },
+    {
+        n: "Amarone Riserva DOCG",
+        i: "Rodzaj: Wino czerwone | Szczep: Corvina, Corvinone, Rondinella | Kraj: Włochy (Veneto)\nProfil: pełna budowa, aksamitne taniny, wysoka koncentracja, długi, bogaty i elegancki finisz.\nPolecane do: steki, pieczona wołowina, dziczyzna, jagnięcina, długo duszone mięsa, sery dojrzewające, gorzka czekolada.",
+        a: "Ciekawostka: Powstaje metodą appassimento (suszenie winogron przez 3-4 miesiące przed fermentacją). Riserva wymaga minimum 4 lat dojrzewania."
+    },
+    {
+        n: "Lambrusco Remigiotto DOC",
+        i: "Rodzaj: Wino czerwone musujące | Szczep: Lambrusco (Salamino, Grasparossa) | Kraj: Włochy\nProfil: soczyste, owocowe, z delikatnymi bąbelkami, łagodnymi taninami i orzeźwiającym finiszem.\nPolecane do: makarony z sosami pomidorowymi, włoskie wędliny, sery miękkie i półtwarde, burgery, dania z grilla.",
+        a: "Ciekawostka: Jedno z niewielu czerwonych win podawanych lekko schłodzonych (10-12°C)."
+    },
+    {
+        n: "Moscato D'Asti DOCG",
+        i: "Rodzaj: Wino białe musujące | Szczep: Moscato Bianco | Kraj: Włochy (Piemont)\nProfil: niska zawartość alkoholu (5-6%), delikatne bąbelki, przyjemna słodycz, świeża kwasowość.\nPolecane do: ciasta i tarty owocowe, świeże owoce, desery, sery pleśniowe, aperitif, brunch.",
+        a: "Ciekawostka: Powstaje metodą Martinottiego (Charmata) - pojedyncza fermentacja w zamkniętych zbiornikach zachowuje naturalny aromat winogron."
+    }
+];
+
+let activeCategory = 'food';
+let menu = foodMenu;
 let currentIndex = 0;
 let currentMode = 'learn';
 let userSelected = false;
+
+function changeCategory(cat) {
+    activeCategory = cat;
+    document.getElementById('cat-food').classList.toggle('active', cat === 'food');
+    document.getElementById('cat-wine').classList.toggle('active', cat === 'wine');
+    
+    if (cat === 'food') {
+        menu = foodMenu;
+        document.getElementById('title-banner').innerText = 'Jedzenie - Fiszki';
+    } else {
+        menu = wineMenu;
+        document.getElementById('title-banner').innerText = 'Karta Win - Fiszki';
+    }
+    
+    currentIndex = 0;
+    updateUI();
+}
 
 function updateUI() {
     userSelected = false;
     const current = menu[currentIndex];
     
-    document.getElementById('display-counter').innerText = `Pytanie ${currentIndex + 1} z ${menu.length}`;
+    document.getElementById('display-counter').innerText = `Pozycja ${currentIndex + 1} z ${menu.length}`;
     document.getElementById('input-index').value = currentIndex + 1;
     
     const questionEl = document.getElementById('display-question');
@@ -287,19 +452,26 @@ function updateUI() {
         
         const btn = document.createElement('button');
         btn.className = 'option-item';
-        btn.innerText = "Kliknij, aby zobaczyć skład i alergeny";
+        btn.innerText = activeCategory === 'food' ? "Kliknij, aby zobaczyć skład i alergeny" : "Kliknij, aby zobaczyć profil, parowanie i ciekawostki";
         btn.onclick = () => {
             btn.style.display = 'none';
             
             const infoText = document.createElement('div');
             infoText.style.textAlign = 'left';
             infoText.style.lineHeight = '1.5';
-            infoText.innerHTML = `<strong>Skład:</strong> ${current.i}<br><br><span style="color:#fca5a5"><strong>Alergeny:</strong> ${current.a}</span>`;
+            infoText.style.whiteSpace = 'pre-line';
+            
+            const label1 = activeCategory === 'food' ? 'Skład' : 'Charakterystyka';
+            const label2 = activeCategory === 'food' ? 'Alergeny' : 'Ciekawostki / Wskazówki';
+
+            infoText.innerHTML = `<strong>${label1}:</strong>\n${current.i}\n\n<span style="color:#fca5a5"><strong>${label2}:</strong>\n${current.a}</span>`;
             optionsEl.appendChild(infoText);
         };
         optionsEl.appendChild(btn);
     } else {
-        questionEl.innerText = `Jakie składniki i dodatki zawiera potrawa: "${current.n}"?`;
+        questionEl.innerText = activeCategory === 'food' 
+            ? `Jakie składniki i dodatki zawiera potrawa: "${current.n}"?`
+            : `Jaki profil, szczep i cechy posiada wino: "${current.n}"?`;
         
         let answers = [current.i];
         while (answers.length < Math.min(4, menu.length)) {
@@ -311,6 +483,7 @@ function updateUI() {
         answers.forEach(ans => {
             const btn = document.createElement('button');
             btn.className = 'option-item';
+            btn.style.whiteSpace = 'pre-line';
             btn.innerText = ans;
             btn.onclick = () => {
                 if (userSelected) return;
